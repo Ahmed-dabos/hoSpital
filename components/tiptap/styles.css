@@ -1,0 +1,19 @@
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+.tiptap h1 {
+    font-size: 36px;
+}
+.tiptap h2 {
+    font-size: 26px;
+}
+.tiptap h3 {
+    font-size: 20px;
+}
+.tiptap p {
+    font-size: 16px;
+}
