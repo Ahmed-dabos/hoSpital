@@ -51,6 +51,7 @@ export async function toggleArchive(id:number) {
     if(department[0].status === "on") {
         await db.update(departments).set({status: "archive"}).where(eq(departments.id, id))
         revalidatePath("/dashboard")
+        revalidatePath("/")
     }else {
 
         await db.update(departments).set({status: "on"}).where(eq(departments.id, id))
