@@ -1,13 +1,8 @@
-import { getOneDepartment, getDepartments } from "@/layouts/home/departments.actions";
+import { getOneDepartment } from "@/layouts/home";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Stethoscope, Activity, Layers, Users, HelpCircle } from "lucide-react";
 
-export async function generateStaticParams() {
-    const departments = await getDepartments()
-    const slugs = departments.map(department => ({slug: department.slug}))
-    return slugs
-}
 
 const contentClass = "space-y-4 text-slate-300 leading-relaxed text-sm md:text-base [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-white [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:tracking-tight [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-white [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:tracking-tight [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:text-slate-300 [&_p]:leading-relaxed [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2 [&_ul]:text-slate-300 [&_ul]:my-4 [&_li]:marker:text-rose-500 [&_hr]:border-white/10 [&_hr]:my-6";
 

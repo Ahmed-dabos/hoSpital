@@ -1,13 +1,7 @@
-import { db } from "@/db/database";
-import { physicians } from "@/db/schema";
 import { getPhysician } from "@/layouts/home";
 import { notFound } from "next/navigation";
 
 
-export async function generateStaticParams() {
-    const allPhysicians = await db.select().from(physicians);
-    return allPhysicians.map(physician => ({ slug: physician.slug }));
-}
 import { Stethoscope, Award, Briefcase, GraduationCap } from "lucide-react";
 
 export default async function Physician({params}: {params: Promise<{slug: string}>}) {
