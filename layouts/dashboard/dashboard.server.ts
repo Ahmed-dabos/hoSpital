@@ -32,6 +32,7 @@ export async function addDepartment(publicUrl: string  ,data: DepartmentFormValu
         }
         revalidatePath("/")
         revalidatePath("/dashboard")
+        revalidatePath("/dashboard/add-physician")
         return {success: true, message:"added department successfully"}
     }
     catch(e) {
@@ -46,6 +47,7 @@ export async function deleteDepartment(id: number) {
     await db.delete(departments).where(eq(departments.id, id))
     revalidatePath("/dashboard")
     revalidatePath("/")
+    revalidatePath("/dashboard/add-physician")
 }
 
 export async function toggleArchive(id:number) {
