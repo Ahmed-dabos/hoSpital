@@ -13,6 +13,6 @@ export default function ArchiveButton({id, status}:{id : number, status: string}
                     : "bg-rose-500/10 hover:bg-rose-500/20 border-rose-500/20 hover:border-rose-500/30 text-rose-400 hover:text-rose-300"
             }`}
         >
-            {status === "archive" ? "publich" : "archive"}
+            {status === "archive" ? "publish" : "archive"}
         </Button>)
 }

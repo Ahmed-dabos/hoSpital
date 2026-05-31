@@ -34,7 +34,7 @@ export default async function DepartmentsOverview() {
                             </p>
                         ) : (
                             <p className="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 backdrop-blur-md shadow-md">
-                                publiched
+                                published
                             </p>
                         )}
                         <div className="aspect-[16/10] w-full overflow-hidden relative border-b border-white/5 bg-slate-950">
