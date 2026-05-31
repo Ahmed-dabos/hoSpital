@@ -43,6 +43,7 @@ export async function addDepartment(publicUrl: string  ,data: DepartmentFormValu
 export async function deleteDepartment(id: number) {
     await db.delete(departments).where(eq(departments.id, id))
     revalidatePath("/dashboard")
+    revalidatePath("/")
 }
 
 export async function toggleArchive(id:number) {
@@ -54,6 +55,7 @@ export async function toggleArchive(id:number) {
 
         await db.update(departments).set({status: "on"}).where(eq(departments.id, id))
         revalidatePath("/dashboard")
+        revalidatePath("/")
     }
     
     
