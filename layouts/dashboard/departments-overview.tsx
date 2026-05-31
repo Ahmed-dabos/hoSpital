@@ -1,9 +1,10 @@
-import { Layers } from "lucide-react";
+import { Layers, Stethoscope } from "lucide-react";
 import DeleteButton from "./delete-button";
 import ArchiveButton from "./archive-button";
-import { getDepartmentsOverview } from "./dashboard.server";
-export default async function AddedDepartments() {
+import { getDepartmentsOverview, getPhysicians } from "./dashboard.server";
+export default async function DepartmentsOverview() {
     const departments = await getDepartmentsOverview()
+    const physicans = await getPhysicians()
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/5 pb-6">
@@ -59,8 +60,59 @@ export default async function AddedDepartments() {
                             </div>
                             
                             <div className="border-t border-white/5 mt-5 pt-4 flex gap-2 w-full">
-                                <DeleteButton id={department.id} />
+                                <DeleteButton id={department.id} type="department" />
                                 <ArchiveButton id={department.id} status={department.status} />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <hr />
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/5 pb-6">
+                <div>
+                    <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+                        <Stethoscope className="h-8 w-8 text-rose-500" />
+                        Clinical physicians
+                    </h1>
+                    <p className="text-sm font-light text-slate-400 mt-1">
+                        Overview of all clinical physicans in our departments
+                    </p>
+                </div>
+                <div className="bg-rose-500/10 px-3 py-1.5 rounded-full border border-rose-500/20 text-xs font-semibold text-rose-400 w-fit">
+                    {physicans.length} total physicians
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {physicans.map(physician => (
+                    <div 
+                        key={physician.id}
+                        className="relative group rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-md overflow-hidden hover:border-rose-500/30 hover:bg-slate-900/60 transition-all duration-300 flex flex-col justify-between"
+                    >
+                        <div className="aspect-[16/10] w-full overflow-hidden relative border-b border-white/5 bg-slate-950">
+                            <img 
+                                src={physician.imgUrl} 
+                                alt={physician.name} 
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                        </div>
+                        
+                        <div className="p-5 flex-1 flex flex-col justify-between">
+                            <div>
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-400 uppercase tracking-wider mb-1">
+                                    deparmtment: {physician.department ? physician.department.name : "unknown"}
+                                </span>
+                                <h3 className="text-lg font-bold text-white tracking-tight">
+                                    {physician.name}
+                                </h3>
+                                <p className="text-sm  text-white tracking-tight">
+                                    {physician.title}
+                                </p>
+                            </div>
+                            
+                            <div className="border-t border-white/5 mt-5 pt-4 flex gap-2 w-full">
+                                <DeleteButton id={physician.id} type="physician" />
                             </div>
                         </div>
                     </div>

@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm"
 import { PhysicianFormValues, type DepartmentFormValues } from "./department.dto"
 import { slugify } from "@/lib/utils"
 import { revalidatePath } from "next/cache"
+import { createSupabaseServerClient } from "@/supabase/server"
 
 
 export async function getDepartmentsOverview() {
@@ -44,7 +45,10 @@ export async function addDepartment(publicUrl: string  ,data: DepartmentFormValu
 }
 
 export async function deleteDepartment(id: number) {
-    await db.delete(departments).where(eq(departments.id, id))
+    const imgUrl = await db.delete(departments).where(eq(departments.id, id)).returning({imgUrl: departments.imgUrl})
+    const imgPath = imgUrl[0].imgUrl.split("/departments/")[1]
+    const supabase = await createSupabaseServerClient()
+    await supabase.storage.from("departments").remove([imgPath])
     revalidatePath("/dashboard")
     revalidatePath("/")
     revalidatePath("/dashboard/add-physician")
@@ -94,4 +98,22 @@ export async function addphysician(publicUrl: string  ,data: PhysicianFormValues
     }
     return { success: false, message: "something went wrong"}
     }
+}
+
+export async function getPhysicians() {
+    const physicians = await db.query.physicians.findMany({
+        with: {
+            department: true
+        }
+    }) 
+        return physicians
+}
+export async function deletePhysician(id: number) {
+    const imgUrl = await db.delete(physicians).where(eq(physicians.id, id)).returning({imgUrl: physicians.imgUrl})
+    const imgPath = imgUrl[0].imgUrl.split("/physicians/")[1]
+    const supabase = await createSupabaseServerClient()
+    await supabase.storage.from("physicians").remove([imgPath])
+    revalidatePath("/dashboard")
+    revalidatePath("/")
+    revalidatePath("/dashboard/add-physician")
 }

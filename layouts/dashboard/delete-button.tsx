@@ -1,6 +1,6 @@
 "use client" 
 import { Button } from "@/components/ui/button"
-import { deleteDepartment } from "./dashboard.server"
+import { deleteDepartment, deletePhysician } from "./dashboard.server"
 import { Trash2 } from "lucide-react"
 import {
   AlertDialog,
@@ -13,7 +13,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-export default function DeleteButton({id}: {id: number}) {
+type ButtonType = "department" | "physician"
+export default function DeleteButton({id, type}: {id: number, type: ButtonType}) {
     return(
         <AlertDialog>
   <AlertDialogTrigger asChild>
@@ -30,12 +31,12 @@ export default function DeleteButton({id}: {id: number}) {
     <AlertDialogHeader>
       <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
       <AlertDialogDescription>
-        This action cannot be undone. This will permanently delete the whole department with details and physicians
+       { type === "department" ?"This action cannot be undone. This will permanently delete the whole department with details and physicians" : "are you sure about deleting this physician?"}
       </AlertDialogDescription>
     </AlertDialogHeader>
     <AlertDialogFooter>
       <AlertDialogCancel >Cancel</AlertDialogCancel>
-      <AlertDialogAction variant="destructive" onClick={ async()=> await deleteDepartment(id)}>Continue</AlertDialogAction>
+      <AlertDialogAction variant="destructive" onClick={ type === "department" ? async()=> await deleteDepartment(id) : async() => await deletePhysician(id)}>Continue</AlertDialogAction>
     </AlertDialogFooter>
   </AlertDialogContent>
 </AlertDialog>
