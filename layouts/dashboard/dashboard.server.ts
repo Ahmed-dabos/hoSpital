@@ -23,7 +23,7 @@ export async function addDepartment(publicUrl: string  ,data: DepartmentFormValu
         }).returning({id: departments.id})
         const content = {details: data.details, services: data.services, faq: data.faq, equipments: data.equipments }
         const _departmentDetails = await db.insert(departmentDetails).values({
-            content: JSON.stringify(content),
+            content,
             departmentId: department[0].id
             
         })
@@ -69,9 +69,9 @@ export async function addphysician(publicUrl: string  ,data: PhysicianFormValues
             title: data.jobTitle
             
         }).returning({id: physicians.id})
-        const content = {content: data.Experiences }
+        const content = {Experiences: data.Experiences }
         const _physicianDetails = await db.insert(physicianDetails).values({
-            content: JSON.stringify(content),
+            content,
             physicianId: physician[0].id
         })
         if(!physician|| !_physicianDetails) {

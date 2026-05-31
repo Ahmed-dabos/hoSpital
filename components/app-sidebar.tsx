@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { logout } from "@/layouts/auth/auth.actions";
+import { logout } from "@/layouts/auth";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { usePathname } from "next/navigation";

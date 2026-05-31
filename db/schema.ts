@@ -1,4 +1,13 @@
 import { pgTable, text, serial, jsonb, integer, pgEnum } from "drizzle-orm/pg-core";
+export type DepartmentContent = {
+  details: string
+  services: string
+  faq: string
+  equipments: string
+}
+export type PhysicianContent = {
+   Experiences: string
+}
 
 export const status = pgEnum("status", ["on", "archive"])
 export const departments = pgTable("departments",{
@@ -19,11 +28,11 @@ export const physicians = pgTable("physicians", {
 
 export const departmentDetails = pgTable("department_details",{
     departmentId: integer("department_id").references(() => departments.id, {onDelete: "cascade"}).notNull().primaryKey(),
-    content: jsonb("content").notNull(),
+    content: jsonb("content").$type<DepartmentContent>(),
     metadata: jsonb("metadata")
 }).enableRLS()
 export const physicianDetails = pgTable("physician_details",{
     physicianId: integer("physician_id").references(() => physicians.id, {onDelete: "cascade"}).notNull().primaryKey(),
-    content: jsonb("content").notNull(),
+    content: jsonb("content").$type<PhysicianContent>(),
     metadata: jsonb("metadata")
 }).enableRLS()

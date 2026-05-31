@@ -17,7 +17,7 @@ export async function uploadPhoto(file: File,bucket: string) {
   if(upload.error) {
     throw new Error(upload.error.message)
   }
-    const {data: {publicUrl}} = await supabase.storage.from("departments").getPublicUrl(path)
+    const {data: {publicUrl}} = await supabase.storage.from(bucket).getPublicUrl(path)
       return {publicUrl, message: "uploaded"}
   } catch(e){
       if(e instanceof Error) {
