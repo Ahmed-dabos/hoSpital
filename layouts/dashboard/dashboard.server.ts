@@ -30,6 +30,8 @@ export async function addDepartment(publicUrl: string  ,data: DepartmentFormValu
         if(!department || !_departmentDetails) {
             throw new Error("faild to add department")
         }
+        revalidatePath("/")
+        revalidatePath("/dashboard")
         return {success: true, message:"added department successfully"}
     }
     catch(e) {
@@ -80,6 +82,8 @@ export async function addphysician(publicUrl: string  ,data: PhysicianFormValues
         if(!physician|| !_physicianDetails) {
             throw new Error("faild to add physician")
         }
+        revalidatePath("/")
+        revalidatePath("/dashboard")
         return {success: true, message:"added physician successfully"}
     }
     catch(e) {

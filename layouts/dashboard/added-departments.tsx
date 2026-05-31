@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { Pencil, Layers } from "lucide-react";
+import { Layers } from "lucide-react";
 import DeleteButton from "./delete-button";
 import ArchiveButton from "./archive-button";
 import { getDepartmentsOverview } from "./dashboard.server";

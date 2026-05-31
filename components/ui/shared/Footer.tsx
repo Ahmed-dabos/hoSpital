@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HeartPulse, Mail, MapPin, Phone } from "lucide-react";
-import { getDepartments } from "@/layouts/home/departments.actions";
+import { getDepartments } from "@/layouts/home";
 export default async function Footer() {
   const departments = await getDepartments()
   return (
