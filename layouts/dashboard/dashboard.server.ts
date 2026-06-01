@@ -177,6 +177,7 @@ export async function editDepartment(id: number, data: DepartmentFormValues, img
         if(!slug[0].slug || !_departmentDetails) {
             return {success: false, message: "something went wrong"}
         }   else {
+                revalidatePath("/")
                 revalidatePath("/dashboard")
             revalidatePath(`/dashboard/edit-department/${slug[0].slug}`)
             return {success: true, message: "updated department successfully"}
@@ -196,6 +197,7 @@ export async function editDepartment(id: number, data: DepartmentFormValues, img
     if(!slug[0].slug || !_departmentDetails) {
         return {success: false, message: "something went wrong"}
     } else {
+            revalidatePath("/")
             revalidatePath("/dashboard")
             revalidatePath(`/dashboard/edit-department/${slug[0].slug}`)
         return {success: true, message: "updated department successfully"}
@@ -219,6 +221,7 @@ export async function editPhysician(id: number, data: PhysicianFormValues, imgUr
         if(!slug || !_physicianDetails) {
             return {success: false, message: "something went wrong"}
         }   else {
+                revalidatePath("/")
                 revalidatePath("/dashboard")
             revalidatePath(`/dashboard/edit-physician/${slug[0].slug}`)
             return {success: true, message: "updated physician successfully"}
@@ -238,6 +241,7 @@ export async function editPhysician(id: number, data: PhysicianFormValues, imgUr
     if(!slug[0].slug || !_physicianDetails) {
         return {success: false, message: "something went wrong"}
     } else {
+            revalidatePath("/")
             revalidatePath("/dashboard")
             revalidatePath(`/dashboard/edit-physician/${slug[0].slug}`)
         return {success: true, message: "updated physician successfully"}
