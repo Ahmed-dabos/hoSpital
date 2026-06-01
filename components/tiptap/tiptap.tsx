@@ -7,14 +7,16 @@ import Highlight from '@tiptap/extension-highlight'
 import { Placeholder } from '@tiptap/extensions'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import { BulletList, ListItem } from '@tiptap/extension-list'
+import { useEffect } from "react"
 import MenuBar from './menu-bar'
 
 type TiptapProps = {
   onChange: (value: string) => void,
   placeHolder: string
-
+  value?: string | null
 }
-export default function Tiptap({onChange,placeHolder, }: TiptapProps) {
+export default function Tiptap({onChange,placeHolder,value}: TiptapProps) {
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -42,10 +44,14 @@ export default function Tiptap({onChange,placeHolder, }: TiptapProps) {
     onUpdate:({editor}) => {
       onChange(editor.getHTML())
     },
-    content: '<p></p>',
+    content: "<p></p>",
     autofocus: false
   })
-
+  useEffect(() => {
+    if (editor && value) {
+      editor.commands.setContent(value)
+    }
+  }, [editor, value])
 
   return (
     <>

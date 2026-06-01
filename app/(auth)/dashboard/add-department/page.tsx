@@ -1,5 +1,5 @@
-import { AddDepartmentForm } from "@/layouts/dashboard";
+import { AddEditDepartmentForm } from "@/layouts/dashboard";
 
 export default function AddDepartment() {
-    return <AddDepartmentForm />
+    return <AddEditDepartmentForm />
 }

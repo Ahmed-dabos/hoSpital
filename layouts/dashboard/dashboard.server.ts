@@ -1,12 +1,13 @@
 "use server"
 
 import { db } from "@/db/database"
-import { departmentDetails, departments, physicians, physicianDetails } from "@/db/schema"
+import { departmentDetails, departments, physicians, physicianDetails, } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { PhysicianFormValues, type DepartmentFormValues } from "./department.dto"
-import { slugify } from "@/lib/utils"
+import { slugify} from "@/lib/utils"
 import { revalidatePath } from "next/cache"
 import { createSupabaseServerClient } from "@/supabase/server"
+import { redirect } from "next/navigation"
 
 
 export async function getDepartmentsOverview() {
@@ -46,9 +47,7 @@ export async function addDepartment(publicUrl: string  ,data: DepartmentFormValu
 
 export async function deleteDepartment(id: number) {
     const imgUrl = await db.delete(departments).where(eq(departments.id, id)).returning({imgUrl: departments.imgUrl})
-    const imgPath = imgUrl[0].imgUrl.split("/departments/")[1]
-    const supabase = await createSupabaseServerClient()
-    await supabase.storage.from("departments").remove([imgPath])
+    await deletImage(imgUrl[0].imgUrl, "departments")
     revalidatePath("/dashboard")
     revalidatePath("/")
     revalidatePath("/dashboard/add-physician")
@@ -110,10 +109,138 @@ export async function getPhysicians() {
 }
 export async function deletePhysician(id: number) {
     const imgUrl = await db.delete(physicians).where(eq(physicians.id, id)).returning({imgUrl: physicians.imgUrl})
-    const imgPath = imgUrl[0].imgUrl.split("/physicians/")[1]
-    const supabase = await createSupabaseServerClient()
-    await supabase.storage.from("physicians").remove([imgPath])
+    await deletImage(imgUrl[0].imgUrl, "physicians")
     revalidatePath("/dashboard")
     revalidatePath("/")
     revalidatePath("/dashboard/add-physician")
+}
+
+export async function deletImage(imgUrl: string,bucket: string, id?: number,) {
+    const imgPath = imgUrl.split(`/${bucket}/`)[1]
+    const supabase = await createSupabaseServerClient()
+    await supabase.storage.from(bucket).remove([imgPath])
+    if(id) {
+        if(bucket === "departments") {
+        const slug =   await db.update(departments).set({
+                imgUrl: "empty"
+            }).where(eq(departments.id,id)).returning({slug: departments.slug})
+                revalidatePath("/")
+                revalidatePath("/dashboard")
+                revalidatePath(`/dashboard/edit-departments/${slug[0].slug}`)
+        }else {
+          const slug =   await db.update(physicians).set({
+                imgUrl: "empty"
+            }).where(eq(physicians.id,id)).returning({slug: physicians.slug})
+                revalidatePath("/")
+                revalidatePath("/dashboard")
+                revalidatePath(`/dashboard/edit-physicians/${slug[0].slug}`)
+        }
+    } 
+
+    
+}
+export async function uploadPhoto(file: File,bucket: string) {
+  try {
+
+    const supabase = await createSupabaseServerClient()
+    const path = `${new Date().getMinutes()}${Math.random()}/${file.name}`
+    const upload = await supabase.storage.from(bucket).upload(path, file,{
+      cacheControl: '3600',
+      upsert: false
+  })
+  if(upload.error) {
+    throw new Error(upload.error.message)
+  }
+    const {data: {publicUrl}} = await supabase.storage.from(bucket).getPublicUrl(path)
+      return {publicUrl, message: "uploaded"}
+  } catch(e){
+      if(e instanceof Error) {
+        return {publicUrl: null, message: e.message}
+      }
+      return {publicUrl: null, message: "something went wrong"}
+  }
+}
+
+export async function editDepartment(id: number, data: DepartmentFormValues, imgUrl: string) {
+
+    if(data.img) {
+        const imgUrl = await uploadPhoto(data.img, "departments")
+        const slug = await db.update(departments).set({
+            name: data.name,
+            slug: slugify(data.name), 
+            imgUrl: imgUrl.publicUrl as string
+        }).where(eq(departments.id, id)).returning({slug: departments.slug})
+        const content = {details: data.details, services: data.services, faq: data.faq, equipments: data.equipments}
+        const _departmentDetails = await db.update(departmentDetails).set({
+            content: content
+        }).where(eq(departmentDetails.departmentId, id))
+        if(!slug[0].slug || !_departmentDetails) {
+            return {success: false, message: "something went wrong"}
+        }   else {
+                revalidatePath("/dashboard")
+            revalidatePath(`/dashboard/edit-department/${slug[0].slug}`)
+            return {success: true, message: "updated department successfully"}
+        }
+    } 
+    
+    else {
+        const slug = await db.update(departments).set({
+            name: data.name,
+            slug: slugify(data.name),
+            imgUrl: imgUrl
+        }).where(eq(departments.id, id)).returning({slug: departments.slug})
+        const content = {details: data.details, services: data.services, faq: data.faq, equipments: data.equipments}
+        const _departmentDetails = await db.update(departmentDetails).set({
+        content: content
+    }).where(eq(departmentDetails.departmentId, id)).returning({departmentId: departmentDetails.departmentId})
+    if(!slug[0].slug || !_departmentDetails) {
+        return {success: false, message: "something went wrong"}
+    } else {
+            revalidatePath("/dashboard")
+            revalidatePath(`/dashboard/edit-department/${slug[0].slug}`)
+        return {success: true, message: "updated department successfully"}
+    }
+    }
+}
+
+export async function editPhysician(id: number, data: PhysicianFormValues, imgUrl: string) {
+
+    if(data.img) {
+        const imgUrl = await uploadPhoto(data.img, "physicians")
+        const slug = await db.update(physicians).set({
+            name: data.name,
+            slug: slugify(data.name), 
+            imgUrl: imgUrl.publicUrl as string
+        }).where(eq(physicians.id, id)).returning({slug: physicians.slug})
+        const content = {Experiences: data.Experiences}
+        const _physicianDetails = await db.update(physicianDetails).set({
+            content: content
+        }).where(eq(physicianDetails.physicianId, id))
+        if(!slug || !_physicianDetails) {
+            return {success: false, message: "something went wrong"}
+        }   else {
+                revalidatePath("/dashboard")
+            revalidatePath(`/dashboard/edit-physician/${slug[0].slug}`)
+            return {success: true, message: "updated physician successfully"}
+        }
+    } 
+    
+    else {
+        const slug = await db.update(physicians).set({
+            name: data.name,
+            slug: slugify(data.name),
+            imgUrl: imgUrl
+        }).where(eq(physicians.id, id)).returning({slug: physicians.slug})
+        const content = {Experiences: data.Experiences}
+        const _physicianDetails = await db.update(physicianDetails).set({
+        content: content
+    }).where(eq(physicianDetails.physicianId, id)).returning({physicianId: physicianDetails.physicianId})
+    if(!slug[0].slug || !_physicianDetails) {
+        return {success: false, message: "something went wrong"}
+    } else {
+            revalidatePath("/dashboard")
+            revalidatePath(`/dashboard/edit-physician/${slug[0].slug}`)
+        return {success: true, message: "updated physician successfully"}
+    }
+    }
 }

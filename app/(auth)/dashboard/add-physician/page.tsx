@@ -1,4 +1,4 @@
-import { AddPhysicianForm } from "@/layouts/dashboard"
+import { AddEditPhysicianForm } from "@/layouts/dashboard"
 import { getDepartmentsOverview } from "@/layouts/dashboard"
 export default async function AddPhysician() {
     const departments = await getDepartmentsOverview()
@@ -6,5 +6,5 @@ export default async function AddPhysician() {
         id: department.id,
         name: department.name
     }))
-    return <AddPhysicianForm departments={departmentsArray} />
+    return <AddEditPhysicianForm departments={departmentsArray} />
 }

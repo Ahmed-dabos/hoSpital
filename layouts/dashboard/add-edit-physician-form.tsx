@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Loader2, PlusCircle, Upload, FileImage, X } from "lucide-react"
-import {  addphysician } from "./dashboard.server"
-import { uploadPhoto } from "@/lib/utils"
+import { Loader2, PlusCircle, Upload, FileImage, X, Pencil, Pyramid } from "lucide-react"
+import {  addphysician, deletImage } from "./dashboard.server"
+import { uploadPhoto } from "./dashboard.server"
 import { useState } from "react"
 import GradientButton from "@/components/ui/shared/GradientButton"
 import Tiptap from "@/components/tiptap/tiptap"
@@ -27,17 +27,19 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import Link from "next/link"
-export function AddPhysicianForm({departments}: {departments: { id: number, name: string}[]}) {
+import { EditPhysicianForm } from "@/app/(auth)/dashboard/edit-physician/[slug]/page"
+import { editPhysician } from "./dashboard.server"
+export function AddEditPhysicianForm({departments, physician}: {departments: { id: number, name: string}[], physician?: EditPhysicianForm}) {
     const [fileKey, setFileKey] = useState(0)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
   
     const {handleSubmit, control, formState, reset} = useForm({
       defaultValues: {
-      name: "",
-      departmentId: "",
-      jobTitle: "",
+      name: physician? physician.name : "",
+      departmentId: physician? physician.departmentId :  "",
+      jobTitle: physician? physician.jobTitle :  "",
       age: "",
-      Experiences: ""
+      Experiences:physician? physician.Experiences : ""
       },
       resolver: zodResolver(physicianFormSchema),
       mode: "onBlur"
@@ -65,18 +67,36 @@ export function AddPhysicianForm({departments}: {departments: { id: number, name
     }
     
       async function onSubmit(_data: PhysicianFormValues) {
-        const result  = await uploadPhoto(_data.img, "physicians")
-        if(!result.publicUrl) {
-          return toast.error(result.message)
+        if(!physician) {
+          if(!_data.img) {
+            return toast.error("please upload a photo")
+          }
+          const result  = await uploadPhoto(_data.img, "physicians")
+          if(!result.publicUrl) {
+            return toast.error(result.message)
+          }
+          const data = await addphysician(result.publicUrl, _data)
+          if(!data?.success) {
+            return toast.error(data?.message)
+          }
+          toast.success(data.message)
+          reset()
+          setFileKey(prev => prev + 1)
+          setSelectedFile(null)
+      } else {
+        if(!_data.img && physician.imgUrl ==="empty") {
+          return toast.error("please upload a photo")
+        } else {
+          const data = await editPhysician(physician.id,_data,physician.imgUrl)
+          if(!data.success) {
+            return toast.error(data.message)
+          } else {
+          toast.success(data.message)
+          setFileKey(prev => prev + 1)
+          setSelectedFile(null)
+          }
         }
-        const data = await addphysician(result.publicUrl, _data)
-        if(!data?.success) {
-          return toast.error(data?.message)
-        }
-        toast.success(data.message)
-        reset()
-        setFileKey(prev => prev + 1)
-        setSelectedFile(null)
+      }
       }
     
       return (
@@ -84,11 +104,11 @@ export function AddPhysicianForm({departments}: {departments: { id: number, name
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/5 pb-6">
             <div>
               <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-                <PlusCircle className="h-8 w-8 text-rose-500" />
-                Add Physician
+                {physician? <Pencil className="h-8 w-8 text-rose-500" />:<PlusCircle className="h-8 w-8 text-rose-500" />}
+                {physician? "edit ":"add" } Physician
               </h1>
               <p className="text-sm font-light text-slate-400 mt-1">
-                Add a new physician to our clinical departments
+               {physician? "edit physician": "Add a new physician to our clinical departments"} 
               </p>
             </div>
           </div>
@@ -339,6 +359,44 @@ export function AddPhysicianForm({departments}: {departments: { id: number, name
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
+                      ) : physician && physician.imgUrl !== "empty" ? (
+                        <div className="relative h-44 w-full rounded-xl border border-white/10 bg-slate-950/40 overflow-hidden group/img-preview animate-in fade-in duration-300">
+                          <img
+                            src={physician.imgUrl}
+                            alt="Current physician profile"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-[2px] transition-all duration-300 group-hover/img-preview:bg-slate-950/40 group-hover/img-preview:backdrop-blur-sm" />
+                          <div className="absolute inset-0 flex flex-col justify-between p-4 z-10">
+                            <div className="flex justify-between items-start">
+                              <div className="bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-[10px] font-bold text-rose-400 uppercase tracking-wider">
+                                Current Profile Image
+                              </div>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 hover:border-rose-500/30 cursor-pointer backdrop-blur-md shadow-md transition-all duration-300 hover:scale-102 active:scale-98"
+                                onClick={async () => {
+                                  await deletImage(physician.imgUrl, "physicians", physician.id);
+                                  setSelectedFile(null);
+                                  onChange(null);
+                                }}
+                              >
+                                <X className="h-3.5 w-3.5" />
+                                Delete Image
+                              </Button>
+                            </div>
+                            <div className="bg-slate-950/80 backdrop-blur-md p-3 rounded-lg border border-white/5 max-w-xs transition-all duration-300 group-hover/img-preview:border-rose-500/20">
+                              <p className="text-xs font-semibold text-white truncate">
+                                {physician.name}
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-0.5">
+                                {physician.jobTitle || "Active clinical physician profile"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       ) : null}
     
                       {fieldState.invalid && (
@@ -360,7 +418,7 @@ export function AddPhysicianForm({departments}: {departments: { id: number, name
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                           Experiences
                         </label>
-                        <Tiptap onChange={onChange} placeHolder="work experiences"/>
+                        <Tiptap value={physician? physician.Experiences: null} onChange={onChange} placeHolder="work experiences"/>
                         {fieldState.error ? (
                           <p className="text-xs font-medium text-rose-500 mt-1">{fieldState.error?.message}</p>
                         ) : null}
@@ -378,9 +436,9 @@ export function AddPhysicianForm({departments}: {departments: { id: number, name
                 {formState.isSubmitting ? (
                   <div className="flex items-center gap-2">
                     <Loader2 className="animate-spin h-5 w-5" />
-                    <span>adding physician...</span>
+                    <span>{physician? "editing physician...":"adding physician..."}</span>
                   </div>
-                ) : "add physician"}
+                ) : <span>{physician? "edit physician":"add physician"}</span>}
               </GradientButton>
             </form>
           </div>

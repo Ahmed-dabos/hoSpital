@@ -11,42 +11,62 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Loader2, PlusCircle, Upload, FileImage, X } from "lucide-react"
-import { addDepartment } from "./dashboard.server"
-import { uploadPhoto } from "@/lib/utils"
+import { Loader2, PlusCircle, Upload, FileImage, X, Pencil } from "lucide-react"
+import { addDepartment, editDepartment } from "./dashboard.server"
+import { uploadPhoto } from "./dashboard.server"
 import { useState } from "react"
 import GradientButton from "@/components/ui/shared/GradientButton"
 import Tiptap from "@/components/tiptap/tiptap"
-
-export function AddDepartmentForm() {
+import { type EditDepartmentForm } from "@/app/(auth)/dashboard/edit-department/[slug]/page"
+import { deletImage } from "./dashboard.server"
+export function AddEditDepartmentForm({department}: {department?: EditDepartmentForm}) {
   const [fileKey, setFileKey] = useState(0)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const {handleSubmit, control, formState, reset} = useForm({
     defaultValues: {
-      name: "",
-      details: "",
-      equipments: "",
-      faq: "",
-      services: ""
+      name: department? department.name :  "",
+      details: department? department.details : "",
+      equipments: department? department.equipments :  "",
+      faq: department? department.faq : "",
+      services: department? department.services : ""
     },
     resolver: zodResolver(departmentFormSchema),
     mode: "onBlur"
   })
-
+  
   async function onSubmit(_data: DepartmentFormValues) {
-    const result  = await uploadPhoto(_data.img, "departments")
-    if(!result.publicUrl) {
-      return toast.error(result.message)
+    if(!department) {
+      if(!_data.img) {
+        return toast.error("please upload a photo")
+      }else{
+        const result  = await uploadPhoto(_data.img, "departments")
+        if(!result.publicUrl) {
+          return toast.error(result.message)
+        }
+        const data = await addDepartment(result.publicUrl, _data)
+        if(!data?.success) {
+          return toast.error(data?.message)
+        }
+        toast.success(data.message)
+        reset()
+        setFileKey(prev => prev + 1)
+        setSelectedFile(null)
+      }
+    } else {
+      if(!_data.img && department.imgUrl === "empty") {
+        return toast.error("please upload a photo")
+      }else {
+        const data = await editDepartment(department.id, _data, department.imgUrl)
+        if(!data?.success) {
+            return toast.error(data?.message)
+        }else {
+          toast.success(data.message)
+          setFileKey(prev => prev + 1)
+          setSelectedFile(null)
+        }
+      }
     }
-    const data = await addDepartment(result.publicUrl, _data)
-    if(!data?.success) {
-      return toast.error(data?.message)
-    }
-    toast.success(data.message)
-    reset()
-    setFileKey(prev => prev + 1)
-    setSelectedFile(null)
   }
 
   return (
@@ -54,12 +74,12 @@ export function AddDepartmentForm() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/5 pb-6">
         <div>
           <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <PlusCircle className="h-8 w-8 text-rose-500" />
-            Add Department
+            {department? <Pencil  className="h-8 w-8 text-rose-500"/>:<PlusCircle className="h-8 w-8 text-rose-500" />}
+            {department? "edit department" : "add department"}
           </h1>
-          <p className="text-sm font-light text-slate-400 mt-1">
+            {department? null :<p className="text-sm font-light text-slate-400 mt-1">
             Create a new clinical department, configure its custom details, and upload high-resolution cover graphics.
-          </p>
+          </p>}
         </div>
       </div>
 
@@ -190,8 +210,45 @@ export function AddDepartmentForm() {
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
+                  ) : department && department.imgUrl !== "empty" ? (
+                    <div className="relative h-44 w-full rounded-xl border border-white/10 bg-slate-950/40 overflow-hidden group/img-preview animate-in fade-in duration-300">
+                      <img
+                        src={department.imgUrl}
+                        alt="Current department cover"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-[2px] transition-all duration-300 group-hover/img-preview:bg-slate-950/40 group-hover/img-preview:backdrop-blur-sm" />
+                      <div className="absolute inset-0 flex flex-col justify-between p-4 z-10">
+                        <div className="flex justify-between items-start">
+                          <div className="bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-[10px] font-bold text-rose-400 uppercase tracking-wider">
+                            Current Cover
+                          </div>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 hover:border-rose-500/30 cursor-pointer backdrop-blur-md shadow-md transition-all duration-300 hover:scale-102 active:scale-98"
+                            onClick={async () => {
+                              await deletImage(department.imgUrl, "departments", department.id);
+                              setSelectedFile(null);
+                              onChange(null);
+                            }}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                            Delete Image
+                          </Button>
+                        </div>
+                        <div className="bg-slate-950/80 backdrop-blur-md p-3 rounded-lg border border-white/5 max-w-xs transition-all duration-300 group-hover/img-preview:border-rose-500/20">
+                          <p className="text-xs font-semibold text-white truncate">
+                            {department.name}
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            Active clinical department cover graphic
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   ) : null}
-
                   {fieldState.invalid && (
                     <FieldError
                       errors={[fieldState.error]}
@@ -211,7 +268,7 @@ export function AddDepartmentForm() {
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                       department details:
                     </label>
-                    <Tiptap onChange={onChange} placeHolder="Write detailed department overview, history, and medical vision..."/>
+                    <Tiptap value={department? department.details : null}  onChange={onChange} placeHolder="Write detailed department overview, history, and medical vision..."/>
                     {fieldState.error ? (
                       <p className="text-xs font-medium text-rose-500 mt-1">{fieldState.error?.message}</p>
                     ) : null}
@@ -229,7 +286,7 @@ export function AddDepartmentForm() {
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                       department services:
                     </label>
-                    <Tiptap onChange={onChange} placeHolder="Write detailed information about key treatments and medical services..."/>
+                    <Tiptap value={department? department.services : null} onChange={onChange} placeHolder="Write detailed information about key treatments and medical services..."/>
                     {fieldState.error ? (
                       <p className="text-xs font-medium text-rose-500 mt-1">{fieldState.error?.message}</p>
                     ) : null}
@@ -247,7 +304,7 @@ export function AddDepartmentForm() {
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                       department equipments:
                     </label>
-                    <Tiptap onChange={onChange} placeHolder="Write details about the clinical technologies and medical equipment..."/>
+                    <Tiptap  value={department? department.equipments : null} onChange={onChange} placeHolder="Write details about the clinical technologies and medical equipment..."/>
                     {fieldState.error ? (
                       <p className="text-xs font-medium text-rose-500 mt-1">{fieldState.error?.message}</p>
                     ) : null}
@@ -265,7 +322,7 @@ export function AddDepartmentForm() {
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                       FAQ:
                     </label>
-                    <Tiptap onChange={onChange} placeHolder="Write frequently asked questions and answers for patients..."/>
+                    <Tiptap value={department? department.faq : null} onChange={onChange} placeHolder="Write frequently asked questions and answers for patients..."/>
                     {fieldState.error ? (
                       <p className="text-xs font-medium text-rose-500 mt-1">{fieldState.error?.message}</p>
                     ) : null}
@@ -283,9 +340,9 @@ export function AddDepartmentForm() {
             {formState.isSubmitting ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="animate-spin h-5 w-5" />
-                <span>adding department...</span>
+                <span>{department? "editting" :"adding department..."}</span>
               </div>
-            ) : "add department"}
+            ) : <span>{department?"edit department":"add department"}</span>}
           </GradientButton>
         </form>
       </div>

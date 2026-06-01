@@ -1,7 +1,9 @@
-import { Layers, Stethoscope } from "lucide-react";
+import { Layers, Pencil, Stethoscope } from "lucide-react";
 import DeleteButton from "./delete-button";
 import ArchiveButton from "./archive-button";
 import { getDepartmentsOverview, getPhysicians } from "./dashboard.server";
+import { Button } from "@/components/ui/button";    
+import Link from "next/link";
 export default async function DepartmentsOverview() {
     const departments = await getDepartmentsOverview()
     const physicans = await getPhysicians()
@@ -62,6 +64,17 @@ export default async function DepartmentsOverview() {
                             <div className="border-t border-white/5 mt-5 pt-4 flex gap-2 w-full">
                                 <DeleteButton id={department.id} type="department" />
                                 <ArchiveButton id={department.id} status={department.status} />
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="flex-1 gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl transition-all duration-300 border border-white/10 hover:border-white/20 bg-slate-800/40 hover:bg-slate-800/60 text-slate-300 hover:text-white cursor-pointer backdrop-blur-sm"
+                                    asChild
+                                >
+                                    <Link href={`/dashboard/edit-department/${department.slug}`} className="flex items-center justify-center gap-1.5 w-full h-full">
+                                        <Pencil className="h-3.5 w-3.5 text-slate-400" />
+                                        edit
+                                    </Link>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -113,6 +126,17 @@ export default async function DepartmentsOverview() {
                             
                             <div className="border-t border-white/5 mt-5 pt-4 flex gap-2 w-full">
                                 <DeleteButton id={physician.id} type="physician" />
+                                    <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="flex-1 gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl transition-all duration-300 border border-white/10 hover:border-white/20 bg-slate-800/40 hover:bg-slate-800/60 text-slate-300 hover:text-white cursor-pointer backdrop-blur-sm"
+                                    asChild
+                                >
+                                    <Link href={`/dashboard/edit-physician/${physician.slug}`} className="flex items-center justify-center gap-1.5 w-full h-full">
+                                        <Pencil className="h-3.5 w-3.5 text-slate-400" />
+                                        edit
+                                    </Link>
+                                </Button>
                             </div>
                         </div>
                     </div>
