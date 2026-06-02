@@ -7,7 +7,7 @@ import { PhysicianFormValues, type DepartmentFormValues } from "./department.dto
 import { slugify} from "@/lib/utils"
 import { revalidatePath } from "next/cache"
 import { createSupabaseServerClient } from "@/supabase/server"
-import { redirect } from "next/navigation"
+
 
 
 export async function getDepartmentsOverview() {
